@@ -1,0 +1,13 @@
+use_frameworks!
+
+platform :ios, '9.0'
+
+target 'LHPerformanceTest_Example' do
+  pod 'LHPerformanceTest', :path => '../'
+
+  target 'LHPerformanceTest_Tests' do
+    inherit! :search_paths
+
+    pod 'FBSnapshotTestCase'
+  end
+end
