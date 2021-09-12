@@ -1,8 +1,8 @@
 //
 //  LHViewController.h
-//  LHPerformanceTest
+//  LHTimeConsumingDetection
 //
-//  Created by albert.li on 09/12/2021.
+//  Created by albert.li on 09/10/2021.
 //  Copyright (c) 2021 albert.li. All rights reserved.
 //
 

@@ -1,10 +1,12 @@
 PODS:
+  - Aspects (1.4.1)
   - FBSnapshotTestCase (2.1.4):
     - FBSnapshotTestCase/SwiftSupport (= 2.1.4)
   - FBSnapshotTestCase/Core (2.1.4)
   - FBSnapshotTestCase/SwiftSupport (2.1.4):
     - FBSnapshotTestCase/Core
-  - LHPerformanceTest (0.1.0)
+  - LHPerformanceTest (0.1.0):
+    - Aspects
 
 DEPENDENCIES:
   - FBSnapshotTestCase
@@ -12,6 +14,7 @@ DEPENDENCIES:
 
 SPEC REPOS:
   trunk:
+    - Aspects
     - FBSnapshotTestCase
 
 EXTERNAL SOURCES:
@@ -19,8 +22,9 @@ EXTERNAL SOURCES:
     :path: "../"
 
 SPEC CHECKSUMS:
+  Aspects: 7595ba96a6727a58ebcbfc954497fc5d2fdde546
   FBSnapshotTestCase: 094f9f314decbabe373b87cc339bea235a63e07a
-  LHPerformanceTest: 5d7efbc0f83d1acb153900675fa24f9c952689a3
+  LHPerformanceTest: e8cacc6391b56a632bb48f6930e9dcb6d94251b0
 
 PODFILE CHECKSUM: 1bb0cd57d4cf4287262bbd8d2352f9da918701d8
 
