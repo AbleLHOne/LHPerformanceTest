@@ -22,7 +22,7 @@ pod 'LHPerformanceTest'
 
 ## Author
 
-albert.li, albert.li@huolala.com
+albert.li
 
 ## License
 
