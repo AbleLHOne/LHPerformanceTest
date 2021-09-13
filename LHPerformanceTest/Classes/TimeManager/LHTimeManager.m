@@ -30,48 +30,6 @@ static NSString * timeStampKey = @"timeStamp";
 static NSString * funtionNameKey = @"funtionName";
 static NSString * timeConsumingKey = @"timeConsuming";
 
-
-static LHTimeManager* _instance = nil;
-
-+ (instancetype)shareInstance{
-    
-    static dispatch_once_t onceToken;
-    
-    dispatch_once(&onceToken, ^{
-        _instance = [[super allocWithZone:NULL] init] ;
-    }) ;
-    return _instance ;
-}
-
-//用alloc返回也是唯一实例
-+(id) allocWithZone:(struct _NSZone *)zone {
-   
-   return [LHTimeManager shareInstance] ;
-}
-
-//对对象使用copy也是返回唯一实例
--(id)copyWithZone:(NSZone *)zone {
-   
-   return [LHTimeManager shareInstance] ;//return _instance;
-}
-
-//对对象使用mutablecopy也是返回唯一实例
--(id)mutableCopyWithZone:(NSZone *)zone {
-   
-   return [LHTimeManager shareInstance] ;
-}
-
-- (instancetype)init {
-    if (self = [super init]) {
-        self.timeInterval = 1;
-        self.testCount = 1;
-        self.alreadyCount = 0;
-
-    }
-    return self;
-}
-
-
 /// 设置测试次数
 -(void)setTestCount:(NSInteger)testCount{
     
@@ -153,7 +111,6 @@ static LHTimeManager* _instance = nil;
             
         }
     }
-    
 }
 
 /// 打印
@@ -260,8 +217,6 @@ static LHTimeManager* _instance = nil;
         
         oldFuntionName = currenfuntionName;
     }
-    
-    phaseStr = [NSString stringWithFormat:@"\n⏱⏱⏱⏱⏱⏱⏱⏱⏱⏱\n\n%@\n⏱⏱⏱⏱⏱⏱⏱⏱⏱⏱\n\n",phaseStr];
     
     return phaseStr;
 }

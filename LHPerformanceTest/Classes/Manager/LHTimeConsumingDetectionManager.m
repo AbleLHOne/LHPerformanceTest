@@ -9,10 +9,11 @@
 #import "LHTimeManager.h"
 #import "LHHookManager.h"
 
+@interface LHTimeConsumingDetectionManager ()<LHHookManagerDelegate>
 
-@interface LHTimeConsumingDetectionManager ()
-
-@property(nonatomic,assign)BOOL isOnce;
+@property(nonatomic,assign)BOOL             isOnce;
+@property(nonatomic,strong)LHTimeManager   *timeManager;
+@property(nonatomic,strong)LHHookManager   *hookManager;
 
 @end
 
@@ -45,7 +46,7 @@ static LHTimeConsumingDetectionManager* _instance = nil;
 //对对象使用mutablecopy也是返回唯一实例
 -(id)mutableCopyWithZone:(NSZone *)zone {
    
-   return [LHTimeManager shareInstance] ;
+   return [LHTimeConsumingDetectionManager shareInstance] ;
 }
 
 - (instancetype)init {
@@ -57,19 +58,19 @@ static LHTimeConsumingDetectionManager* _instance = nil;
 /// 设置测试次数
 -(void)setTestCount:(NSInteger)testCount{
     
-    [[LHTimeManager shareInstance]setTestCount:testCount];
+    [self.timeManager setTestCount:testCount];
 }
 
 /// 设置最后一个调用的方法
 -(void)setLastMethonName:(NSString*)methonName{
     
-    [[LHTimeManager shareInstance]setLastMethonName:methonName];
+    [self.timeManager setLastMethonName:methonName];
 }
 
 /// 开始统计
 -(void)startStatistical{
     
-    [[LHTimeManager shareInstance]startTime];
+    [self.timeManager startTime];
 }
 
 /// hook 统计方法
@@ -79,25 +80,53 @@ static LHTimeConsumingDetectionManager* _instance = nil;
 ///} ]
 -(void)hookStatisticalFuntionWithFuntionData:(NSArray*)funtionData{
     
-    [[LHHookManager shareInstance]hookActionWithFuntionArray:funtionData];
+    [self.hookManager hookActionWithFuntionArray:funtionData];
 }
 
 /// 计算整体耗时
 -(NSString*)getCalculateTimeConsumingStr{
     
-    return [[LHTimeManager shareInstance]getCalculateTimeConsumingStr];
+    return [self.timeManager getCalculateTimeConsumingStr];
 }
 
 // 获取阶段耗时字符串
 -(NSString*)getPhaseTimeConsumingStr{
     
-    return [[LHTimeManager shareInstance]getPhaseTimeConsumingStr];
+    return [self.timeManager getPhaseTimeConsumingStr];
 }
 
 /// 获取当前数据绘制的视图
 -(UIView*)getCurrenStatisticalView{
     
     return [UIView new];
+}
+
+#pragma mark - LHHookManagerDelegate
+
+-(void)actionHookCallBackWithMethodName:(NSString*)methodName AspectInfo:(id<AspectInfo>)aspectInfo{
+    
+    [self.timeManager markTimeWithName:methodName];
+}
+
+#pragma mark - getter - setter
+
+-(LHTimeManager *)timeManager{
+    
+    if (!_timeManager) {
+        
+       _timeManager =[[LHTimeManager alloc]init];
+    }
+    return _timeManager;
+}
+
+-(LHHookManager *)hookManager{
+    
+    if (!_hookManager) {
+        _hookManager =[[LHHookManager alloc]init];
+        _hookManager.delegate = self;
+    }
+    
+    return _hookManager;
 }
 
 

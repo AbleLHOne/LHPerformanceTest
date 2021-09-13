@@ -11,7 +11,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface LHTimeManager : NSObject
 
-+ (instancetype)shareInstance;
 
 /// 开启
 -(void)startTime;

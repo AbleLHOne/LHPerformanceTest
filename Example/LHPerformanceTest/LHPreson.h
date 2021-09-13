@@ -17,6 +17,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 -(void)eat;
 
+-(void)sleepDown:(BOOL)down;
+
+-(void)eatDown:(BOOL)down;
+
 @end
 
 NS_ASSUME_NONNULL_END
