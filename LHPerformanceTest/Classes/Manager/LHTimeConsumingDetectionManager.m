@@ -89,6 +89,15 @@ static LHTimeConsumingDetectionManager* _instance = nil;
     return [self.timeManager getCalculateTimeConsumingStr];
 }
 
+/// 获取计算整体耗时
+-(NSString*)getCalculateTimeConsumingFormatStr{
+    
+    
+    return [self.timeManager getCalculateTimeConsumingFormatStr];;
+}
+
+
+
 // 获取阶段耗时字符串
 -(NSString*)getPhaseTimeConsumingStr{
     

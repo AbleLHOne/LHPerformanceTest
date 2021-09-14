@@ -19,6 +19,7 @@
 @property (nonatomic,strong) NSMutableArray     *alreadyArray;
 @property (nonatomic,strong) NSString           *successRateStr;
 @property (nonatomic,strong) NSString           *successPhaseRateStr;
+@property (nonatomic,strong) NSString           *successRateFormatStr;
 @property (nonatomic,strong) NSMutableArray     *classDataAry;
 
  
@@ -202,8 +203,10 @@ static LHActionSuccessRateManager* _instance = nil;
     
     self.successRateStr = [self setSuccessRateStrWithMarkDataAry:self.alreadyArray];
     self.successPhaseRateStr = [self setPhaseSuccessRateStrWithAlreadyArray:self.alreadyArray];
-    NSLog(@"%@",self.successRateStr);
-    NSLog(@"%@", self.successPhaseRateStr);
+//    NSLog(@"%@",self.successRateStr);
+//    NSLog(@"%@", self.successPhaseRateStr);
+    
+    [[NSNotificationCenter defaultCenter]postNotificationName:@"SuccessRateFinish" object:nil];
 }
 
 -(void)afterCall{
@@ -224,6 +227,12 @@ static LHActionSuccessRateManager* _instance = nil;
 -(NSString*)getPhaseSuccessRateStr{
     
     return self.successPhaseRateStr;
+}
+
+/// 获取格式化成功率字符串
+-(NSString*)getSuccessRateFormatStr{
+    
+    return self.successRateFormatStr;
 }
 
 
@@ -247,6 +256,8 @@ static LHActionSuccessRateManager* _instance = nil;
     CGFloat rate = (successCount/(self.testCount*methonCount))*100;
     
     NSString*rateStr = [NSString stringWithFormat:@"%ld次流程整体成功率:%.1f %%",(long)self.testCount,rate];
+    
+    self.successRateFormatStr = rateStr;
     
     rateStr = [NSString stringWithFormat:@"\n\n🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉\n\n%@\n\n🎉🎉🎉🎉🎉🎉🎉🎉🎉🎉\n",rateStr];
 

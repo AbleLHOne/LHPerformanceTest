@@ -21,6 +21,9 @@
 @property (nonatomic,strong) NSMutableArray    *alreadyTimeArray;
 @property (nonatomic,strong) NSString          *timeConsumingStr;
 @property (nonatomic,strong) NSString          *phaseConsumingStr;
+@property (nonatomic,strong) NSString          *timeConsumingFormatStr;
+@property (nonatomic,strong) NSString          *phaseConsumingFormatStr;
+
 @end
 
 @implementation LHTimeManager
@@ -118,8 +121,11 @@ static NSString * timeConsumingKey = @"timeConsuming";
     
     self.timeConsumingStr = [self getCalculateTimeConsumingStr];
     self.phaseConsumingStr = [self getPhaseTimeConsumingStr];
-    NSLog(@"%@",self.timeConsumingStr);
-    NSLog(@"%@", self.phaseConsumingStr);
+//    NSLog(@"%@",self.timeConsumingStr);
+//    NSLog(@"%@", self.phaseConsumingStr);
+    
+    [[NSNotificationCenter defaultCenter]postNotificationName:@"TimeConsuminFinish" object:nil];
+    
 }
 
 -(void)afterCall{
@@ -160,6 +166,8 @@ static NSString * timeConsumingKey = @"timeConsuming";
 -(NSString*)getCalculateTimeConsumingStrWithStartTimeStamp:(NSString*)startTimeStamp{
     
     NSString*time = [NSString stringWithFormat:@"%ld次流程整体耗时:%.3f秒",(long)self.testCount,[self getDurationStartTime:startTimeStamp endTime:self.stopTimeStamp]];
+    
+    self.timeConsumingFormatStr = time;
     
     time = [NSString stringWithFormat:@"\n\n⏱⏱⏱⏱⏱⏱⏱⏱⏱⏱\n\n%@\n\n⏱⏱⏱⏱⏱⏱⏱⏱⏱⏱\n",time];
 
@@ -248,6 +256,13 @@ static NSString * timeConsumingKey = @"timeConsuming";
     }
     
     return consumingAry.copy;
+}
+
+
+/// 获取计算整体耗时
+-(NSString*)getCalculateTimeConsumingFormatStr{
+    
+    return self.timeConsumingFormatStr;
 }
 
 

@@ -30,8 +30,11 @@ NS_ASSUME_NONNULL_BEGIN
 ///} ]
 -(void)hookStatisticalFuntionWithFuntionData:(NSArray*)funtionData;
 
-/// 计算整体耗时
+/// 获取计算整体耗时
 -(NSString*)getCalculateTimeConsumingStr;
+
+/// 获取计算整体耗时
+-(NSString*)getCalculateTimeConsumingFormatStr;
 
 // 获取阶段耗时字符串
 -(NSString*)getPhaseTimeConsumingStr;

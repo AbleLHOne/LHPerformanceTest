@@ -33,6 +33,10 @@ NS_ASSUME_NONNULL_BEGIN
 // 获取阶段耗时字符串
 -(NSString*)getPhaseTimeConsumingStr;
 
+/// 获取计算整体耗时
+-(NSString*)getCalculateTimeConsumingFormatStr;
+
+
 @end
 
 NS_ASSUME_NONNULL_END

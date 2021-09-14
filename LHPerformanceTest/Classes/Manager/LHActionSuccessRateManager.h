@@ -36,6 +36,9 @@ NS_ASSUME_NONNULL_BEGIN
 /// 获取成功率
 -(NSString*)getSuccessRateStr;
 
+/// 获取格式成功率字符串
+-(NSString*)getSuccessRateFormatStr;
+
 /// 获取阶段成功率
 -(NSString*)getPhaseSuccessRateStr;
 
