@@ -9,11 +9,10 @@
 #import "LHTimeManager.h"
 #import "LHHookManager.h"
 
-@interface LHTimeConsumingDetectionManager ()<LHHookManagerDelegate>
+@interface LHTimeConsumingDetectionManager ()
 
 @property(nonatomic,assign)BOOL             isOnce;
 @property(nonatomic,strong)LHTimeManager   *timeManager;
-@property(nonatomic,strong)LHHookManager   *hookManager;
 
 @end
 
@@ -51,6 +50,8 @@ static LHTimeConsumingDetectionManager* _instance = nil;
 
 - (instancetype)init {
     if (self = [super init]) {
+        
+        [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(hookAction:) name:@"HookAction" object:nil];
     }
     return self;
 }
@@ -80,7 +81,8 @@ static LHTimeConsumingDetectionManager* _instance = nil;
 ///} ]
 -(void)hookStatisticalFuntionWithFuntionData:(NSArray*)funtionData{
     
-    [self.hookManager hookActionWithFuntionArray:funtionData];
+    [[LHHookManager shareInstance]hookActionWithFuntionArray:funtionData];
+    
 }
 
 /// 计算整体耗时
@@ -110,11 +112,17 @@ static LHTimeConsumingDetectionManager* _instance = nil;
     return [UIView new];
 }
 
-#pragma mark - LHHookManagerDelegate
 
--(void)actionHookCallBackWithMethodName:(NSString*)methodName AspectInfo:(id<AspectInfo>)aspectInfo{
+#pragma mark - NSNotification
+
+-(void)hookAction:(NSNotification*)noti{
+    
+    NSDictionary*dict = noti.object;
+    
+    NSString*methodName = dict[@"methodName"];
     
     [self.timeManager markTimeWithName:methodName];
+    
 }
 
 #pragma mark - getter - setter
@@ -127,16 +135,5 @@ static LHTimeConsumingDetectionManager* _instance = nil;
     }
     return _timeManager;
 }
-
--(LHHookManager *)hookManager{
-    
-    if (!_hookManager) {
-        _hookManager =[[LHHookManager alloc]init];
-        _hookManager.delegate = self;
-    }
-    
-    return _hookManager;
-}
-
 
 @end

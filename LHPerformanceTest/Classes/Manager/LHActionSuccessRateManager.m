@@ -8,20 +8,19 @@
 #import "LHActionSuccessRateManager.h"
 #import "LHHookManager.h"
 
-@interface LHActionSuccessRateManager()<LHHookManagerDelegate>
+@interface LHActionSuccessRateManager()
 
 @property (nonatomic,assign) NSInteger          testCount;
 @property (nonatomic,strong) NSString          *lastMethonName;
 @property (nonatomic,assign) NSInteger          alreadyCount; // 已经测试的次数
 @property (nonatomic,assign) NSInteger          successCount; // 成功的次数
-@property (nonatomic,strong) LHHookManager      *hookManager;
 @property (nonatomic,strong) NSMutableArray     *markDataAry;
 @property (nonatomic,strong) NSMutableArray     *alreadyArray;
 @property (nonatomic,strong) NSString           *successRateStr;
 @property (nonatomic,strong) NSString           *successPhaseRateStr;
 @property (nonatomic,strong) NSString           *successRateFormatStr;
 @property (nonatomic,strong) NSMutableArray     *classDataAry;
-
+@property (nonatomic,strong) NSDictionary       *nameDict;
  
 @end
 
@@ -66,7 +65,8 @@ static LHActionSuccessRateManager* _instance = nil;
         
       
         self.lastMethonName = @"";
-        [self hookManager];
+        
+        [[NSNotificationCenter defaultCenter]addObserver:self selector:@selector(hookAction:) name:@"HookAction" object:nil];
         
     }
     return self;
@@ -92,8 +92,7 @@ static LHActionSuccessRateManager* _instance = nil;
 ///} ]
 -(void)hookStatisticalFuntionWithFuntionData:(NSArray*)funtionData{
     
-    [self.hookManager hookActionWithFuntionArray:funtionData];
-    
+    [[LHHookManager shareInstance]hookActionWithFuntionArray:funtionData];
 }
 
 /// 设置最后一个调用的方法
@@ -117,9 +116,9 @@ static LHActionSuccessRateManager* _instance = nil;
         NSString * isSuccess = [self checkObjectCorrectWithObjectData:objectData Name:name];
      
         NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-        
+        NSString*newName =self.nameDict[name];
         [dict setValue:isSuccess forKey:successKey];
-        [dict setValue:name forKey:funtionNameKey];
+        [dict setValue:newName forKey:funtionNameKey];
         [self.markDataAry addObject:dict];
         [self checkisLastMethonName:name MarkDataAry:self.markDataAry.copy];
     }
@@ -134,42 +133,28 @@ static LHActionSuccessRateManager* _instance = nil;
     
     if (dict) {
         
-        for (id object in objectData) {
+       id object =objectData.firstObject;
+        
+        id value = dict[@"keyWord"];
+        
+        if ([object isKindOfClass:[NSNumber class]]) {
             
-            NSString*className = dict[@"className"];
-            
-            id value = dict[@"keyWord"];
-            
-            Class cls = NSClassFromString(className);
-            
-            if ([object isKindOfClass:[NSNumber class]]) {
+            if ([object intValue] == [value intValue]) {
                 
-                if ([object intValue] == [value intValue]) {
-                    
-                    isSuccess = @"1";
-                }
+                isSuccess = @"1";
             }
+        }
+        
+        
+        if ([object isKindOfClass:[NSString class]]) {
             
-            
-            if ([object isKindOfClass:[NSString class]]) {
+            if ([object isEqualToString:value]) {
                 
-                if ([object isEqualToString:value]) {
-                    
-                    isSuccess = @"1";
-                }
+                isSuccess = @"1";
             }
-            
-            if ([object isKindOfClass:[cls class]]) {
-                
-//                if (object) {
-//                    
-//                    isSuccess = @"1";
-//                }
-            }
-            
         }
     }
- 
+    
     return isSuccess;
 }
 
@@ -177,23 +162,18 @@ static LHActionSuccessRateManager* _instance = nil;
 /// 检测是否最后一个方法
 -(void)checkisLastMethonName:(NSString*)methonName MarkDataAry:(NSArray*)markDataAry{
     
+    
     if ([self.lastMethonName isEqualToString:methonName]) {
+        
+        self.alreadyCount++;
+
+        [self.alreadyArray addObject:markDataAry];
+        [self.markDataAry removeAllObjects];
+    
         
         if (self.alreadyCount == self.testCount || self.testCount < 1) {
             
             [self printTimeConsumingStr];
-            
-            
-        }else{
-            
-            [self.alreadyArray addObject:markDataAry];
-            [self.markDataAry removeAllObjects];
-            self.alreadyCount++;
-            
-            if (self.alreadyCount == self.testCount) {
-                [self afterCall];
-            }
-            
         }
     }
 }
@@ -358,26 +338,21 @@ static LHActionSuccessRateManager* _instance = nil;
 
 
 
-#pragma mark - LHHookManagerDelegate
+#pragma mark - NSNotification
 
--(void)actionHookCallBackWithMethodName:(NSString*)methodName AspectInfo:(id<AspectInfo>)aspectInfo{
+-(void)hookAction:(NSNotification*)noti{
     
-    [self markDataWithName:methodName ObjectData:aspectInfo.arguments];
+    NSDictionary*dict = noti.object;
+    
+    NSArray * arguments = dict[@"AspectInfo"];
+    
+    [self markDataWithName:dict[@"methodName"] ObjectData:arguments];
     
 }
 
 
 #pragma mark - getter - setter
 
--(LHHookManager *)hookManager{
-    
-    if (!_hookManager) {
-        _hookManager =[[LHHookManager alloc]init];
-        _hookManager.delegate = self;
-    }
-    
-    return _hookManager;
-}
 
 
 -(NSMutableArray *)markDataAry{
@@ -396,6 +371,26 @@ static LHActionSuccessRateManager* _instance = nil;
         _alreadyArray = [NSMutableArray array];
     }
     return _alreadyArray;
+}
+
+
+-(NSDictionary *)nameDict{
+    
+    if (!_nameDict) {
+        
+        _nameDict = @{
+          
+            @"onceSystemLoctionWholeProcessiSSucces:Count:CurrenCount:":@"定位结束",
+            @"oncePrepareDataWholeProcessiSSucces:Count:CurrenCount:":@"数据拼接结束",
+            @"onceUpLoadDataWholeProcessiSSucces:Count:CurrenCount:":@"数据上传结束",
+            @"upLoadDataiSSuccess:":@"数据上传结束",
+            @"prepareDataiSSuccess:":@"数据拼接结束",
+            @"loctioniSSuccess:":@"定位结束",
+        };
+        
+    }
+    
+    return _nameDict;
 }
 
 

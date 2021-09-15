@@ -10,15 +10,17 @@
 
 NS_ASSUME_NONNULL_BEGIN
 
-@protocol LHHookManagerDelegate <NSObject>
-
--(void)actionHookCallBackWithMethodName:(NSString*)methodName AspectInfo:(id<AspectInfo>)aspectInfo;
-
-@end
+//@protocol LHHookManagerDelegate <NSObject>
+//
+//-(void)actionHookCallBackWithMethodName:(NSString*)methodName AspectInfo:(id<AspectInfo>)aspectInfo;
+//
+//@end
 
 @interface LHHookManager : NSObject
 
-@property (nonatomic,weak)id<LHHookManagerDelegate>delegate;
++ (instancetype)shareInstance;
+
+//@property (nonatomic,weak)id<LHHookManagerDelegate>delegate;
 
 /// Hook要监听的事件
 -(void)hookActionWithFuntionArray:(NSArray*)funtionAry;

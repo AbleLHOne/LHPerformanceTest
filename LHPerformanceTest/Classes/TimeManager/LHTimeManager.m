@@ -24,6 +24,9 @@
 @property (nonatomic,strong) NSString          *timeConsumingFormatStr;
 @property (nonatomic,strong) NSString          *phaseConsumingFormatStr;
 
+@property (nonatomic,strong) NSDictionary      *nameDict;
+
+
 @end
 
 @implementation LHTimeManager
@@ -84,8 +87,10 @@ static NSString * timeConsumingKey = @"timeConsuming";
      
         NSMutableDictionary *dict = [NSMutableDictionary dictionary];
         
+        NSString*newName =self.nameDict[name];
+        
         [dict setValue:[self getCurrenTimeStamp] forKey:timeStampKey];
-        [dict setValue:name forKey:funtionNameKey];
+        [dict setValue:newName forKey:funtionNameKey];
         
         [self.markTimeArray addObject:dict];
         [self checkisLastMethonName:name MarkTimeArray:self.markTimeArray.copy];
@@ -98,22 +103,23 @@ static NSString * timeConsumingKey = @"timeConsuming";
     
     if ([self.lastMethonName isEqualToString:methonName]) {
         
-        if (self.alreadyCount == self.testCount || self.testCount <= 1) {
-            [self stopTime];
-            [self printTimeConsumingStr];
-            
-        }else{
+        self.alreadyCount++;
+        
+        if (self.testCount > 1) {
             
             [self.alreadyTimeArray addObject:markTimeArray];
             [self.markTimeArray removeAllObjects];
-            self.alreadyCount++;
-            
-            if (self.alreadyCount == self.testCount) {
-                [self afterCall];
-            }
+        }
+        
+        if (self.alreadyCount == self.testCount || self.testCount < 1) {
+            [self stopTime];
+            [self printTimeConsumingStr];
             
         }
+
     }
+    
+   
 }
 
 /// 打印
@@ -121,8 +127,8 @@ static NSString * timeConsumingKey = @"timeConsuming";
     
     self.timeConsumingStr = [self getCalculateTimeConsumingStr];
     self.phaseConsumingStr = [self getPhaseTimeConsumingStr];
-//    NSLog(@"%@",self.timeConsumingStr);
-//    NSLog(@"%@", self.phaseConsumingStr);
+    NSLog(@"%@",self.timeConsumingStr);
+    NSLog(@"%@", self.phaseConsumingStr);
     
     [[NSNotificationCenter defaultCenter]postNotificationName:@"TimeConsuminFinish" object:nil];
     
@@ -189,9 +195,9 @@ static NSString * timeConsumingKey = @"timeConsuming";
     
     NSString *phaseStr = @"";
     NSString*upTime = self.startTimeStamp;
-    int index = 1;
+    int index = 0;
     for (NSArray*markTimeArray in self.alreadyTimeArray) {
-        
+        index++;
         NSArray *consumingAry = [self calculatePhaseTimeConsumingWithStartTimeStamp:upTime MarkTimeArray:markTimeArray];
         
         NSString*time = [self formattingPhaseTimeConsumingStr:consumingAry];
@@ -205,7 +211,7 @@ static NSString * timeConsumingKey = @"timeConsuming";
             upTime =dict[timeStampKey];
         }
         
-        index++;
+       
     }
     
     
@@ -333,6 +339,24 @@ static NSString * timeConsumingKey = @"timeConsuming";
     return _alreadyTimeArray;
 }
 
+-(NSDictionary *)nameDict{
+    
+    if (!_nameDict) {
+        
+        _nameDict = @{
+          
+            @"onceSystemLoctionWholeProcessiSSucces:Count:CurrenCount:":@"定位结束",
+            @"oncePrepareDataWholeProcessiSSucces:Count:CurrenCount:":@"数据拼接结束",
+            @"onceUpLoadDataWholeProcessiSSucces:Count:CurrenCount:":@"数据上传结束",
+            @"upLoadDataiSSuccess:":@"数据上传结束",
+            @"prepareDataiSSuccess:":@"数据拼接结束",
+            @"loctioniSSuccess:":@"定位结束",
+        };
+        
+    }
+    
+    return _nameDict;
+}
 
 
 
