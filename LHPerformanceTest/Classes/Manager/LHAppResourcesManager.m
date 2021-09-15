@@ -16,8 +16,8 @@
 @property (nonatomic,assign) CGFloat    stopCpuUsage;
 @property (nonatomic,assign) NSInteger  startMemoryUsage;
 @property (nonatomic,assign) NSInteger  stopMemoryUsage;
-@property (nonatomic,assign) int        startBatteryUsage;
-@property (nonatomic,assign) int        stopBatteryUsage;
+@property (nonatomic,assign) CGFloat        startBatteryUsage;
+@property (nonatomic,assign) CGFloat        stopBatteryUsage;
 
 
 @end
@@ -96,7 +96,7 @@ static LHAppResourcesManager* _instance = nil;
 -(NSString*)getElectricityVolatility{
     
     
-    return [NSString stringWithFormat:@" %d -- %d",self.startBatteryUsage,self.stopBatteryUsage];
+    return [NSString stringWithFormat:@" %.f%% -- %.f%%",self.startBatteryUsage*100,self.stopBatteryUsage*100];
 }
 
 
@@ -154,44 +154,16 @@ static LHAppResourcesManager* _instance = nil;
 }
 
 
-/// 获取电量
-- (int)getCurrentBatteryLevel
-{
-    UIApplication *app = [UIApplication sharedApplication];
-    if (app.applicationState == UIApplicationStateActive||app.applicationState==UIApplicationStateInactive) {
-        Ivar ivar=  class_getInstanceVariable([app class],"_statusBar");
-        id status  = object_getIvar(app, ivar);
-        for (id aview in [status subviews]) {
-            int batteryLevel = 0;
-            for (id bview in [aview subviews]) {
-                if ([NSStringFromClass([bview class]) caseInsensitiveCompare:@"UIStatusBarBatteryItemView"] == NSOrderedSame&&[[[UIDevice currentDevice] systemVersion] floatValue] >=6.0)
-                {
-                    
-                    Ivar ivar=  class_getInstanceVariable([bview class],"_capacity");
-                    if(ivar)
-                    {
-                        batteryLevel = ((int (*)(id, Ivar))object_getIvar)(bview, ivar);
-                        //这种方式也可以
-                        /*ptrdiff_t offset = ivar_getOffset(ivar);
-                         unsigned char *stuffBytes = (unsigned char *)(__bridge void *)bview;
-                         batteryLevel = * ((int *)(stuffBytes + offset));*/
-                        NSLog(@"电池电量:%d",batteryLevel);
-                        if (batteryLevel > 0 && batteryLevel <= 100) {
-                            return batteryLevel;
-                            
-                        } else {
-                            return 0;
-                        }
-                    }
-                    
-                }
-                
-            }
-        }
-    }
+-(CGFloat)getCurrentBatteryLevel{
     
-    return 0;
+    UIDevice *myDevice = [UIDevice currentDevice];
+    [myDevice setBatteryMonitoringEnabled:YES];
+    float batteryLevel = [myDevice batteryLevel];
+    
+    return batteryLevel;
 }
+
+
 
 
 
