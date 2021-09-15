@@ -380,12 +380,12 @@ static LHActionSuccessRateManager* _instance = nil;
         
         _nameDict = @{
           
-            @"onceSystemLoctionWholeProcessiSSucces:Count:CurrenCount:":@"定位结束",
-            @"oncePrepareDataWholeProcessiSSucces:Count:CurrenCount:":@"数据拼接结束",
-            @"onceUpLoadDataWholeProcessiSSucces:Count:CurrenCount:":@"数据上传结束",
-            @"upLoadDataiSSuccess:":@"数据上传结束",
-            @"prepareDataiSSuccess:":@"数据拼接结束",
-            @"loctioniSSuccess:":@"定位结束",
+            @"onceSystemLoctionWholeProcessiSSucces:Count:CurrenCount:":@"定位",
+            @"oncePrepareDataWholeProcessiSSucces:Count:CurrenCount:":@"数据拼接",
+            @"onceUpLoadDataWholeProcessiSSucces:Count:CurrenCount:":@"数据上传",
+            @"upLoadDataiSSuccess:":@"数据上传",
+            @"prepareDataiSSuccess:":@"数据拼接",
+            @"loctioniSSuccess:":@"定位",
         };
         
     }
