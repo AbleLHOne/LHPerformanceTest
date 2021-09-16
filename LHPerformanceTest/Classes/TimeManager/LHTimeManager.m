@@ -207,11 +207,8 @@ static NSString * timeConsumingKey = @"timeConsuming";
         /// 最后一个方法的时间戳
         NSDictionary*dict = markTimeArray.lastObject;
         
-        if ([self.lastMethonName isEqualToString:dict[funtionNameKey]]){
-            upTime =dict[timeStampKey];
-        }
+        upTime =dict[timeStampKey];
         
-       
     }
     
     
