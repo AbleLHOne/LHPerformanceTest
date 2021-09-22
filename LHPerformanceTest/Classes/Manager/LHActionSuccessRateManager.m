@@ -7,11 +7,13 @@
 
 #import "LHActionSuccessRateManager.h"
 #import "LHHookManager.h"
+#import "NSObject+LHPropertyListing.h"
 
 @interface LHActionSuccessRateManager()
 
 @property (nonatomic,assign) NSInteger          testCount;
 @property (nonatomic,strong) NSString          *lastMethonName;
+@property (nonatomic,strong) NSString          *firstMethonName;
 @property (nonatomic,assign) NSInteger          alreadyCount; // 已经测试的次数
 @property (nonatomic,assign) NSInteger          successCount; // 成功的次数
 @property (nonatomic,strong) NSMutableArray     *markDataAry;
@@ -19,9 +21,10 @@
 @property (nonatomic,strong) NSString           *successRateStr;
 @property (nonatomic,strong) NSString           *successPhaseRateStr;
 @property (nonatomic,strong) NSString           *successRateFormatStr;
-@property (nonatomic,strong) NSMutableArray     *classDataAry;
 @property (nonatomic,strong) NSDictionary       *nameDict;
- 
+
+@property (nonatomic,weak)   id<LHObjectContrastProtocol>protocol;
+
 @end
 
 @implementation LHActionSuccessRateManager
@@ -72,9 +75,10 @@ static LHActionSuccessRateManager* _instance = nil;
     return self;
 }
 
+
+
 -(void)start{
     
-    self.alreadyCount = 0;
     self.successCount = 0;
     
     [self.alreadyArray removeAllObjects];
@@ -84,6 +88,23 @@ static LHActionSuccessRateManager* _instance = nil;
     self.successPhaseRateStr = nil;
     
 }
+
+-(void)reset{
+    
+    self.alreadyCount = 0;
+}
+
+
+
+///对象对比(测试成功率需要)
+///@param protocol 用于外部设置数据
+-(void)setObjectContrastProtocol:(id<LHObjectContrastProtocol>)protocol{
+    
+    if (protocol) {
+        self.protocol = protocol;
+    }
+}
+
 
 /// hook 统计方法
 ///funtionData = [  {
@@ -102,10 +123,25 @@ static LHActionSuccessRateManager* _instance = nil;
     
 }
 
+/// 设置第一个调用的方法
+-(void)setFirstMethonName:(NSString*)methonName{
+    
+    _firstMethonName = methonName;
+}
+
+
 /// 设置测试次数
 -(void)setTestCount:(NSInteger)testCount{
     
     _testCount = testCount;
+}
+
+///设置方法名称映射 （可选）
+///@param nameMap 方法名称映射字典
+-(void)setMethodNameMapping:(NSDictionary*)nameMap{
+    
+    self.nameDict = nameMap;
+    
 }
 
 ///标记当前数据
@@ -113,30 +149,55 @@ static LHActionSuccessRateManager* _instance = nil;
     
     @synchronized (self) {
         
-        NSString * isSuccess = [self checkObjectCorrectWithObjectData:objectData Name:name];
-     
-        NSMutableDictionary *dict = [NSMutableDictionary dictionary];
-        NSString*newName =self.nameDict[name];
-        [dict setValue:isSuccess forKey:successKey];
-        [dict setValue:newName forKey:funtionNameKey];
-        [self.markDataAry addObject:dict];
-        [self checkisLastMethonName:name MarkDataAry:self.markDataAry.copy];
+        if ([self.firstMethonName isEqualToString:name]) {
+            
+            if (self.alreadyCount == 0) {
+                
+                [self start];
+            }
+            
+        }else{
+            
+            NSString * isSuccess = [self checkObjectCorrectWithObjectData:objectData Name:name];
+         
+            NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+            NSString*newName = name;
+            if (self.nameDict[name]) {
+                newName = self.nameDict[name];
+            }
+            
+            [dict setValue:isSuccess forKey:successKey];
+            [dict setValue:newName forKey:funtionNameKey];
+            [self.markDataAry addObject:dict];
+            [self checkisLastMethonName:name MarkDataAry:self.markDataAry.copy];
+        }
+        
     }
     
 }
 
 -(NSString*)checkObjectCorrectWithObjectData:(NSArray*)objectData Name:(NSString*)name{
     
-    NSString * isSuccess = @"0";
+   __block NSString * isSuccess = @"0";
     
     NSDictionary*dict = [self findClassDataWithMethodName:name];
     
     if (dict) {
         
-       id object =objectData.firstObject;
+        int index  = [dict[@"index"] intValue];
         
-        id value = dict[@"keyWord"];
+        if (index >=objectData.count) {
+            
+            return isSuccess;
+        }
         
+        
+       id object =objectData[index];
+        
+        id value = dict[name];
+        
+        
+        /// 优先对比是否 BOOL 和 NSString 类型
         if ([object isKindOfClass:[NSNumber class]]) {
             
             if ([object intValue] == [value intValue]) {
@@ -145,7 +206,6 @@ static LHActionSuccessRateManager* _instance = nil;
             }
         }
         
-        
         if ([object isKindOfClass:[NSString class]]) {
             
             if ([object isEqualToString:value]) {
@@ -153,6 +213,23 @@ static LHActionSuccessRateManager* _instance = nil;
                 isSuccess = @"1";
             }
         }
+        
+        NSDictionary*contrastDict = [object properties_aps];
+        
+        NSDictionary*parameterDict = [value properties_aps];
+        
+        /// 以提供数据为准 精确对比
+        [contrastDict enumerateKeysAndObjectsUsingBlock:^(id  _Nonnull key, id  _Nonnull obj, BOOL * _Nonnull stop) {
+           
+            if (parameterDict[key] ==  obj) {
+                
+                isSuccess = @"1";
+            }else{
+                
+                isSuccess = @"0";
+            }
+        }];
+    
     }
     
     return isSuccess;
@@ -162,20 +239,39 @@ static LHActionSuccessRateManager* _instance = nil;
 /// 检测是否最后一个方法
 -(void)checkisLastMethonName:(NSString*)methonName MarkDataAry:(NSArray*)markDataAry{
     
-    
     if ([self.lastMethonName isEqualToString:methonName]) {
         
         self.alreadyCount++;
-
+        
         [self.alreadyArray addObject:markDataAry];
         [self.markDataAry removeAllObjects];
-    
         
-        if (self.alreadyCount == self.testCount || self.testCount < 1) {
+        
+        if (self.alreadyCount == self.testCount) {
             
             [self printTimeConsumingStr];
         }
     }
+}
+
+/// 查找对应的关键字
+-(NSDictionary*)findClassDataWithMethodName:(NSString*)methodName{
+    
+    if ([self.protocol respondsToSelector:@selector(objectContrastData)]) {
+        
+        NSArray * dictAry = [self.protocol objectContrastData];
+        
+        for (NSDictionary*dict in dictAry) {
+            
+            if (dict[methodName]) {
+                
+                return dict;
+            }
+        }
+        
+    }
+    
+    return nil;
 }
 
 /// 打印
@@ -185,7 +281,7 @@ static LHActionSuccessRateManager* _instance = nil;
     self.successPhaseRateStr = [self setPhaseSuccessRateStrWithAlreadyArray:self.alreadyArray];
 //    NSLog(@"%@",self.successRateStr);
 //    NSLog(@"%@", self.successPhaseRateStr);
-    
+    [self reset];
     [[NSNotificationCenter defaultCenter]postNotificationName:@"SuccessRateFinish" object:nil];
 }
 
@@ -287,10 +383,10 @@ static LHActionSuccessRateManager* _instance = nil;
                 
                 [successDict setValue:@"1" forKey:funtionName];
             }
+            
         }else{
             
             [successDict setValue:@"0" forKey:funtionName];
-            
         }
     }
     
@@ -300,42 +396,15 @@ static LHActionSuccessRateManager* _instance = nil;
        
         CGFloat rate = ([obj intValue]/1)*100;
         
-        rateStr = [NSString stringWithFormat:@"%@%@-成功率:%.1f %%\n",rateStr,key,rate];
+        rate = rate>100?100:rate;
+        
+        rateStr = [NSString stringWithFormat:@"%@%@ ---》》》成功率: %.1f %%\n",rateStr,key,rate];
         
     }];
     
     
     return rateStr;
 }
-
-/// 设置对象对比是否成功
-///funtionData = [  {
-///    className:"XXXX"
-///    funtionName:"xxxx"
-///    keyWord:xxxx
-///} ]
--(void)setCheckClassData:(NSArray*)classData{
-    
-    self.classDataAry = classData.mutableCopy;
-
-}
-
-/// 查找对应的关键字
--(NSDictionary*)findClassDataWithMethodName:(NSString*)methodName{
-    
-    
-    for (NSDictionary*dict in self.classDataAry) {
-        
-        if ([dict[funtionNameKey] isEqualToString:methodName]) {
-            
-            return dict;
-        }
-    }
-    
-    
-    return nil;
-}
-
 
 
 #pragma mark - NSNotification
@@ -378,15 +447,7 @@ static LHActionSuccessRateManager* _instance = nil;
     
     if (!_nameDict) {
         
-        _nameDict = @{
-          
-            @"onceSystemLoctionWholeProcessiSSucces:Count:CurrenCount:":@"定位",
-            @"oncePrepareDataWholeProcessiSSucces:Count:CurrenCount:":@"数据拼接",
-            @"onceUpLoadDataWholeProcessiSSucces:Count:CurrenCount:":@"数据上传",
-            @"upLoadDataiSSuccess:":@"数据上传",
-            @"prepareDataiSSuccess:":@"数据拼接",
-            @"loctioniSSuccess:":@"定位",
-        };
+        _nameDict = [NSDictionary dictionary];
         
     }
     

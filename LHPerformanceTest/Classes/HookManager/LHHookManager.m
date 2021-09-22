@@ -11,6 +11,8 @@
 
 @interface LHHookManager ()
 
+@property (nonatomic,strong) NSMutableArray *aspectTokenArray;
+
 @end
 
 @implementation LHHookManager
@@ -62,13 +64,15 @@ static LHHookManager* _instance = nil;
         NSString*funtionName =dict[@"funtionName"];
         SEL method =NSSelectorFromString(funtionName);
         Class cls =  NSClassFromString(className);
-        [cls aspect_hookSelector:method withOptions:AspectPositionBefore usingBlock:^(id <AspectInfo> info){
+        id<AspectToken> token = [cls aspect_hookSelector:method withOptions:AspectPositionBefore usingBlock:^(id <AspectInfo> info){
             
             NSLog(@"method ==== %@",funtionName);
             
             [self actionHookCallBackWithMethodName:funtionName AspectInfo:info];
             
         } error:nil];
+        
+        [self.aspectTokenArray addObject:token];
     }
 
 }
@@ -84,11 +88,28 @@ static LHHookManager* _instance = nil;
     
     [[NSNotificationCenter defaultCenter]postNotificationName:@"HookAction" object:dict];
     
-//    if ([self.delegate respondsToSelector:@selector(actionHookCallBackWithMethodName:AspectInfo:)]) {
-//
-//        [self.delegate actionHookCallBackWithMethodName:methodName AspectInfo:aspectInfo];
-//    }
+}
 
+/// 删除Hook方法
+-(void)removeHookFuntion{
+    
+    for (id<AspectToken> token in self.aspectTokenArray) {
+        [token remove];
+    }
+    
+    [self.aspectTokenArray removeAllObjects];
+}
+
+
+
+-(NSMutableArray *)aspectTokenArray{
+    
+    if (!_aspectTokenArray) {
+        _aspectTokenArray =[NSMutableArray array];
+
+    }
+    
+    return _aspectTokenArray;
 }
 
 

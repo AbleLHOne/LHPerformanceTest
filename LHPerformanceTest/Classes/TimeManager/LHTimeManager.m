@@ -8,16 +8,16 @@
 #import "LHTimeManager.h"
 
 @interface LHTimeManager ()
-//
-//@property (nonatomic,strong)dispatch_queue_t   gcdTimerQueue;
-//@property (nonatomic,strong)dispatch_source_t  gcdTimer;
+
 @property (nonatomic,assign) int                timeInterval;
 @property (nonatomic,strong) NSString          *startTimeStamp;
 @property (nonatomic,strong) NSString          *stopTimeStamp;
 @property (nonatomic,strong) NSMutableArray    *markTimeArray;
 @property (nonatomic,assign) NSInteger          testCount;
 @property (nonatomic,strong) NSString          *lastMethonName;
+@property (nonatomic,strong) NSString          *firstMethonName;
 @property (nonatomic,assign) NSInteger          alreadyCount; // 已经测试的次数
+@property (nonatomic,assign) NSInteger          oldAlreadyCount;
 @property (nonatomic,strong) NSMutableArray    *alreadyTimeArray;
 @property (nonatomic,strong) NSString          *timeConsumingStr;
 @property (nonatomic,strong) NSString          *phaseConsumingStr;
@@ -31,10 +31,32 @@
 
 @implementation LHTimeManager
 
-
 static NSString * timeStampKey = @"timeStamp";
 static NSString * funtionNameKey = @"funtionName";
 static NSString * timeConsumingKey = @"timeConsuming";
+
+/// 开启定时器
+-(void)startTime{
+    
+    self.startTimeStamp = [self getCurrenTimeStamp];
+    self.timeConsumingStr = nil;
+    self.phaseConsumingStr = nil;
+    [self.alreadyTimeArray removeAllObjects];
+    [self.markTimeArray removeAllObjects];
+    [self reset];
+}
+
+/// 重置数据
+-(void)reset{
+    
+    self.alreadyCount = 0;
+}
+
+/// 关闭定时器
+-(void)stopTime{
+    
+    self.stopTimeStamp = [self getCurrenTimeStamp];
+}
 
 /// 设置测试次数
 -(void)setTestCount:(NSInteger)testCount{
@@ -48,35 +70,17 @@ static NSString * timeConsumingKey = @"timeConsuming";
     _lastMethonName =methonName;
 }
 
-/// 开启定时器
--(void)startTime{
+/// 设置第一个调用的方法
+-(void)setFirstMethonName:(NSString*)methonName{
     
-    [self rset];
+    _firstMethonName = methonName;
 }
 
-/// 重置数据
--(void)rset{
+///设置方法名称映射 （可选）
+///@param nameMap 方法名称映射字典
+-(void)setMethodNameMapping:(NSDictionary*)nameMap{
     
-    self.startTimeStamp = [self getCurrenTimeStamp];
-    [self.alreadyTimeArray removeAllObjects];
-    [self.markTimeArray removeAllObjects];
-    self.alreadyCount = 0;
-    self.timeConsumingStr = nil;
-    self.phaseConsumingStr = nil;
-}
-
-/// 暂停定时器
--(void)suspendTime{
-    
-//    dispatch_suspend(self.gcdTimer);
-}
-
-/// 关闭定时器
--(void)stopTime{
-    
-//    dispatch_cancel(self.gcdTimer);
-//    self.gcdTimer = nil;
-    self.stopTimeStamp = [self getCurrenTimeStamp];
+    self.nameDict = nameMap;
 }
 
 
@@ -84,26 +88,40 @@ static NSString * timeConsumingKey = @"timeConsuming";
 -(void)markTimeWithName:(NSString*)name{
     
     @synchronized (self) {
-     
-        NSMutableDictionary *dict = [NSMutableDictionary dictionary];
         
-        NSString*newName =self.nameDict[name];
+        if ([self.firstMethonName isEqualToString:name]) {
+            
+            if (self.alreadyCount == 0) {
+                [[NSNotificationCenter defaultCenter]postNotificationName:@"LHTestStart" object:nil];
+                [self startTime];
+            }
+            
+        }
+        
+        NSMutableDictionary *dict = [NSMutableDictionary dictionary];
+        NSString*newName =name;
+        if (self.nameDict[name]) {
+            newName =self.nameDict[name];
+        }
         
         [dict setValue:[self getCurrenTimeStamp] forKey:timeStampKey];
         [dict setValue:newName forKey:funtionNameKey];
         
         [self.markTimeArray addObject:dict];
         [self checkisLastMethonName:name MarkTimeArray:self.markTimeArray.copy];
-       
+        
     }
 }
 
 /// 检测是否最后一个方法
 -(void)checkisLastMethonName:(NSString*)methonName MarkTimeArray:(NSArray*)markTimeArray{
     
+    
     if ([self.lastMethonName isEqualToString:methonName]) {
         
         self.alreadyCount++;
+        
+        self.oldAlreadyCount = self.alreadyCount;
         
         if (self.testCount > 1) {
             
@@ -111,15 +129,15 @@ static NSString * timeConsumingKey = @"timeConsuming";
             [self.markTimeArray removeAllObjects];
         }
         
-        if (self.alreadyCount == self.testCount || self.testCount < 1) {
+        if (self.alreadyCount == self.testCount ) {
             [self stopTime];
             [self printTimeConsumingStr];
             
         }
-
+        
+       
     }
     
-   
 }
 
 /// 打印
@@ -130,6 +148,7 @@ static NSString * timeConsumingKey = @"timeConsuming";
     NSLog(@"%@",self.timeConsumingStr);
     NSLog(@"%@", self.phaseConsumingStr);
     
+    [self reset];
     [[NSNotificationCenter defaultCenter]postNotificationName:@"TimeConsuminFinish" object:nil];
     
 }
@@ -224,7 +243,7 @@ static NSString * timeConsumingKey = @"timeConsuming";
     for (NSDictionary*dict in consumingAry) {
         NSString *currenfuntionName =dict[funtionNameKey];
         NSString *timeConsumingStr =dict[timeConsumingKey];
-        phaseStr = [NSString stringWithFormat:@"%@%@--%@    耗时:%@秒\n",phaseStr,oldFuntionName,currenfuntionName,timeConsumingStr];
+        phaseStr = [NSString stringWithFormat:@"%@%@ ---》》》 %@ 耗时: %@秒\n",phaseStr,oldFuntionName,currenfuntionName,timeConsumingStr];
         
         oldFuntionName = currenfuntionName;
     }
@@ -268,6 +287,11 @@ static NSString * timeConsumingKey = @"timeConsuming";
     return self.timeConsumingFormatStr;
 }
 
+/// 获取测试次数
+-(NSInteger)getAlreadyCount{
+    
+    return self.oldAlreadyCount;
+}
 
 
 #pragma mark - P
@@ -340,16 +364,7 @@ static NSString * timeConsumingKey = @"timeConsuming";
     
     if (!_nameDict) {
         
-        _nameDict = @{
-          
-            @"onceSystemLoctionWholeProcessiSSucces:Count:CurrenCount:":@"定位结束",
-            @"oncePrepareDataWholeProcessiSSucces:Count:CurrenCount:":@"数据拼接结束",
-            @"onceUpLoadDataWholeProcessiSSucces:Count:CurrenCount:":@"数据上传结束",
-            @"upLoadDataiSSuccess:":@"数据上传结束",
-            @"prepareDataiSSuccess:":@"数据拼接结束",
-            @"loctioniSSuccess:":@"定位结束",
-        };
-        
+        _nameDict = [NSDictionary dictionary];
     }
     
     return _nameDict;

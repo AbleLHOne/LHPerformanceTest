@@ -68,10 +68,18 @@ static LHTimeConsumingDetectionManager* _instance = nil;
     [self.timeManager setLastMethonName:methonName];
 }
 
-/// 开始统计
--(void)startStatistical{
+/// 设置第一个调用的方法
+-(void)setFirstMethonName:(NSString*)methonName{
     
-    [self.timeManager startTime];
+    [self.timeManager setFirstMethonName:methonName];
+}
+
+///设置方法名称映射 （可选）
+///@param nameMap 方法名称映射字典
+-(void)setMethodNameMapping:(NSDictionary*)nameMap{
+    
+    [self.timeManager setMethodNameMapping:nameMap];
+    
 }
 
 /// hook 统计方法
@@ -94,11 +102,8 @@ static LHTimeConsumingDetectionManager* _instance = nil;
 /// 获取计算整体耗时
 -(NSString*)getCalculateTimeConsumingFormatStr{
     
-    
     return [self.timeManager getCalculateTimeConsumingFormatStr];;
 }
-
-
 
 // 获取阶段耗时字符串
 -(NSString*)getPhaseTimeConsumingStr{
@@ -106,10 +111,10 @@ static LHTimeConsumingDetectionManager* _instance = nil;
     return [self.timeManager getPhaseTimeConsumingStr];
 }
 
-/// 获取当前数据绘制的视图
--(UIView*)getCurrenStatisticalView{
+/// 获取测试次数
+-(NSInteger)getAlreadyCount{
     
-    return [UIView new];
+    return [self.timeManager getAlreadyCount];
 }
 
 

@@ -1,17 +1,23 @@
 //
-//  LHTimeConsumingDetectionManager.h
-//  LHTimeConsumingDetection
+//  LHPerformanceTestManager.h
+//  LHPerformanceTest
 //
-//  Created by mac on 2021/9/10.
+//  Created by mac on 2021/9/20.
 //
 
 #import <Foundation/Foundation.h>
+#import "LHObjectContrastProtocol.h"
 
 NS_ASSUME_NONNULL_BEGIN
 
-@interface LHTimeConsumingDetectionManager : NSObject
+@interface LHPerformanceTestManager : NSObject
 
+/// 单例
 + (instancetype)shareInstance;
+
+///对象对比(测试成功率需要)
+///@param protocol 用于获取外部设置数据
+-(void)setObjectContrastProtocol:(id<LHObjectContrastProtocol>)protocol;
 
 ///设置第一个调用的方法 （开启定时器和相关配置, 必填）
 ///@param methonName :第一个调用方法名称
@@ -37,17 +43,37 @@ NS_ASSUME_NONNULL_BEGIN
 ///} ]
 -(void)hookStatisticalFuntionWithFuntionData:(NSArray*)funtionData;
 
-/// 获取计算整体耗时
--(NSString*)getCalculateTimeConsumingStr;
+/// 获取方法整体耗时
+-(NSString*)getConsumingCalculateTimeConsumingStr;
 
-/// 获取计算整体耗时
+// 获取方法阶段耗时字符串
+-(NSString*)getConsumingPhaseTimeConsumingStr;
+
+/// 获取格式化计算整体耗时
 -(NSString*)getCalculateTimeConsumingFormatStr;
 
-// 获取阶段耗时字符串
--(NSString*)getPhaseTimeConsumingStr;
+/// 获取方法成功率
+-(NSString*)getSuccessRateStr;
 
-/// 获取测试次数
+/// 获取格式成功率字符串
+-(NSString*)getSuccessRateFormatStr;
+
+/// 获取方法阶段成功率
+-(NSString*)getPhaseSuccessRateStr;
+
+/// 获取Cpu 波动
+-(NSString*)getCpuVolatility;
+
+/// 获取内存 波动
+-(NSString*)getMemoryVolatility;
+
+/// 获取电量 波动
+-(NSString*)getElectricityVolatility;
+
+/// 获取已经测试次数
 -(NSInteger)getAlreadyCount;
+
+
 
 @end
 
