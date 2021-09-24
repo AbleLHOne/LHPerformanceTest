@@ -7,6 +7,8 @@ PODS:
     - FBSnapshotTestCase/Core
   - LHPerformanceTest (0.1.0):
     - Aspects
+    - Masonry
+  - Masonry (1.1.0)
 
 DEPENDENCIES:
   - FBSnapshotTestCase
@@ -16,6 +18,7 @@ SPEC REPOS:
   trunk:
     - Aspects
     - FBSnapshotTestCase
+    - Masonry
 
 EXTERNAL SOURCES:
   LHPerformanceTest:
@@ -24,7 +27,8 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Aspects: 7595ba96a6727a58ebcbfc954497fc5d2fdde546
   FBSnapshotTestCase: 094f9f314decbabe373b87cc339bea235a63e07a
-  LHPerformanceTest: e8cacc6391b56a632bb48f6930e9dcb6d94251b0
+  LHPerformanceTest: fcfa46421f45f85a6d1718b3b26bd9fc3eb9c03c
+  Masonry: 678fab65091a9290e40e2832a55e7ab731aad201
 
 PODFILE CHECKSUM: 1bb0cd57d4cf4287262bbd8d2352f9da918701d8
 
