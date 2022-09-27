@@ -6,12 +6,6 @@
 # To learn more about a Podspec see https://guides.cocoapods.org/syntax/podspec.html
 #
 
-
-
-
-
-
-
 Pod::Spec.new do |s|
   s.name             = 'LHPerformanceTest'
   s.version          = '0.1.1'
@@ -25,7 +19,10 @@ Pod::Spec.new do |s|
 
   s.description      = <<-DESC
 TODO: Add long description of the pod here.
-                       DESC
+       
+
+
+              DESC
 
   s.homepage         = 'https://github.com/AbleLHOne/LHPerformanceTest'
   # s.screenshots     = 'www.example.com/screenshots_1', 'www.example.com/screenshots_2'
